@@ -125,6 +125,27 @@
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycfbP1TjvkTGDaI_dId2ukhXpxWKJHyrqUSy5bMYyc92VBvIjJTfJ1fo1nP7Yz8asM/exec';
 
+(function warmUpServer(){
+  const callbackName = 'warmup_' + Date.now();
+
+  window[callbackName] = function() {
+    try { delete window[callbackName]; } catch(e) { window[callbackName] = undefined; }
+  };
+
+  const script = document.createElement('script');
+  script.src = APPS_SCRIPT_URL
+    + '?action=ping'
+    + '&callback=' + encodeURIComponent(callbackName)
+    + '&t=' + Date.now();
+
+  script.onerror = function(){};
+  document.body.appendChild(script);
+
+  setTimeout(() => {
+    if (script.parentNode) script.parentNode.removeChild(script);
+  }, 8000);
+})();
+
 let puerta='', stream=null, devices=[], current=0;
 let running=false, raf=null, lastScan=0;
 let detector=null, useDetector=false;
@@ -382,7 +403,6 @@ backdrop.addEventListener('click',e=>{
   if(e.target===backdrop)cerrar();
 });
 
-// ✅ VALIDAR usando JSONP para evitar CORS
 function validar(code){
   showLoading('Validando...');
 
