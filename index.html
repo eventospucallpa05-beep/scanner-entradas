@@ -13,126 +13,71 @@
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 
-  /* ── PANTALLA SELECCIÓN PUERTA ── */
-  #sPuerta{
-    display:flex;flex-direction:column;align-items:center;
-    justify-content:center;min-height:100dvh;padding:24px;
-  }
+  #sPuerta{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:24px}
   .logos{display:flex;gap:20px;align-items:center;margin-bottom:28px}
-  .logos img{height:44px}
+  .logos img{height:44px;object-fit:contain}
   #sPuerta h1{font-size:24px;font-weight:900;margin:0 0 6px;text-align:center}
   #sPuerta p{color:#a1a1aa;font-size:14px;margin:0 0 28px;text-align:center}
   .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:380px}
-  .pbtn{
-    background:#161f36;border:3px solid #334155;color:#fff;
-    border-radius:18px;padding:28px 10px;font-size:18px;font-weight:900;
-    cursor:pointer;transition:.15s;text-align:center;line-height:1.4
-  }
-  .pbtn:hover{border-color:var(--gold);color:var(--gold)}
+  .pbtn{background:#161f36;border:3px solid #334155;color:#fff;border-radius:18px;padding:28px 10px;font-size:18px;font-weight:900;cursor:pointer;text-align:center;line-height:1.5}
   .pbtn:active{background:var(--gold);color:#111;border-color:var(--gold)}
 
-  /* ── PANTALLA ESCÁNER ── */
   #sScan{display:none;flex-direction:column;height:100dvh}
-  .head{
-    display:flex;align-items:center;gap:10px;
-    padding:10px 14px;background:var(--blue);
-    border-bottom:2px solid var(--gold);flex-shrink:0
-  }
+  .head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--blue);border-bottom:2px solid var(--gold);flex-shrink:0}
   .head img{height:32px}
   .head-mid{flex:1;text-align:center}
-  .head-mid .ev{font-size:13px;font-weight:900}
-  .head-mid .pt{font-size:14px;font-weight:900;color:var(--gold)}
-  .btn-back{
-    background:transparent;border:2px solid #334155;
-    color:#e2e8f0;border-radius:10px;padding:7px 12px;
-    font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap
-  }
-  .vbox{
-    position:relative;flex:1 1 auto;margin:8px;
-    border:3px solid var(--blue);border-radius:16px;
-    overflow:hidden;background:#000;min-height:180px
-  }
+  .head-ev{font-size:13px;font-weight:900}
+  .head-pt{font-size:14px;font-weight:900;color:var(--gold)}
+  .btn-back{background:transparent;border:2px solid #334155;color:#e2e8f0;border-radius:10px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer}
+
+  .vbox{position:relative;flex:1 1 auto;margin:8px;border:3px solid var(--blue);border-radius:16px;overflow:hidden;background:#111;min-height:180px}
   video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .frame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-  .frame-box{
-    width:220px;height:220px;border:3px solid var(--gold);
-    border-radius:20px;opacity:.85;
-    box-shadow:0 0 0 2000px rgba(0,0,0,.42)
+  .frame-box{width:220px;height:220px;border:3px solid var(--gold);border-radius:20px;opacity:.85;box-shadow:0 0 0 2000px rgba(0,0,0,.42)}
+
+  /* Pantalla de inicio dentro del escáner */
+  .cam-placeholder{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:16px;
+    background:#0a0f1e;cursor:pointer;
   }
-  .controls{
-    flex-shrink:0;background:rgba(15,23,42,.97);
-    padding:10px;display:grid;grid-template-columns:1fr 1fr;
-    gap:8px;border-top:1px solid rgba(255,255,255,.08)
+  .cam-placeholder .cam-ico{font-size:64px;opacity:.6}
+  .cam-placeholder .cam-txt{color:#8eb7ff;font-size:16px;font-weight:700;text-align:center;padding:0 20px}
+  .cam-placeholder .cam-btn{
+    background:var(--gold);color:#111;border:none;
+    border-radius:14px;padding:16px 32px;font-size:20px;
+    font-weight:900;cursor:pointer;margin-top:8px
   }
-  .btn{
-    display:flex;align-items:center;justify-content:center;gap:6px;
-    background:#161f36;color:#fff;border:none;border-radius:12px;
-    padding:16px 10px;font-size:17px;font-weight:800;min-height:54px;cursor:pointer
-  }
+
+  .controls{flex-shrink:0;background:rgba(15,23,42,.97);padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid rgba(255,255,255,.08)}
+  .btn{display:flex;align-items:center;justify-content:center;gap:6px;background:#161f36;color:#fff;border:none;border-radius:12px;padding:16px 10px;font-size:17px;font-weight:800;min-height:54px;cursor:pointer}
   .btn:disabled{opacity:.4;cursor:not-allowed}
   .btn-gold{background:var(--gold);color:#111;border:2px solid var(--blue);grid-column:1/-1}
   .btn-red{background:#b91c1c}
   .btn-ghost{background:transparent;border:2px solid #334155;color:#e2e8f0}
   .manual{grid-column:1/-1;display:flex;gap:8px}
-  .manual input{
-    flex:1;background:#0b1220;border:2px solid #334155;
-    color:#fff;border-radius:10px;font-size:17px;padding:14px 12px;min-width:0
-  }
+  .manual input{flex:1;background:#0b1220;border:2px solid #334155;color:#fff;border-radius:10px;font-size:17px;padding:14px 12px;min-width:0}
 
-  /* ── MODAL ── */
-  .backdrop{
-    position:fixed;inset:0;background:rgba(0,0,0,.72);
-    display:none;align-items:center;justify-content:center;
-    z-index:9999;padding:16px
-  }
-  .modal{
-    width:min(96vw,560px);background:#0b1220;
-    border:3px solid var(--blue);border-radius:20px;padding:20px
-  }
-  .box-ok{
-    background:var(--ok-bg);color:var(--ok-tx);border:3px solid var(--ok-bd);
-    border-radius:14px;padding:20px;font-size:28px;font-weight:900;
-    text-align:center;margin-bottom:12px
-  }
-  .box-err{
-    background:var(--er-bg);color:var(--er-tx);border:3px solid var(--er-bd);
-    border-radius:14px;padding:20px;font-size:24px;font-weight:900;
-    text-align:center;margin-bottom:12px;white-space:pre-line;line-height:1.4
-  }
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px}
+  .modal{width:min(96vw,560px);background:#0b1220;border:3px solid var(--blue);border-radius:20px;padding:20px}
+  .box-ok{background:var(--ok-bg);color:var(--ok-tx);border:3px solid var(--ok-bd);border-radius:14px;padding:20px;font-size:28px;font-weight:900;text-align:center;margin-bottom:12px}
+  .box-err{background:var(--er-bg);color:var(--er-tx);border:3px solid var(--er-bd);border-radius:14px;padding:20px;font-size:22px;font-weight:900;text-align:center;margin-bottom:12px;white-space:pre-line;line-height:1.4}
   .det{text-align:center;font-size:18px;line-height:1.6;margin-bottom:14px}
   .det b{color:#e5e7eb}
   .mact{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-  .btnm{
-    font-size:18px;min-height:58px;padding:14px 20px;border-radius:14px;
-    border:none;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:8px
-  }
+  .btnm{font-size:18px;min-height:58px;padding:14px 20px;border-radius:14px;border:none;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:8px}
 
-  /* ── LOADING ── */
-  #loading{
-    position:fixed;inset:0;background:rgba(7,11,20,.9);
-    display:none;align-items:center;justify-content:center;
-    flex-direction:column;gap:14px;z-index:99999
-  }
-  .spin{
-    width:48px;height:48px;border:5px solid #1f3359;
-    border-top-color:var(--gold);border-radius:50%;
-    animation:sp .8s linear infinite
-  }
+  #loading{position:fixed;inset:0;background:rgba(7,11,20,.9);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:99999}
+  .spin{width:48px;height:48px;border:5px solid #1f3359;border-top-color:var(--gold);border-radius:50%;animation:sp .8s linear infinite}
   @keyframes sp{to{transform:rotate(360deg)}}
   #loading p{color:var(--gold);font-size:17px;font-weight:700}
 </style>
 </head>
 <body>
 
-<!-- ── LOADING ── -->
-<div id="loading">
-  <div class="spin"></div>
-  <p id="loadTxt">Validando...</p>
-</div>
+<div id="loading"><div class="spin"></div><p id="loadTxt">Validando...</p></div>
 
-<!-- ══════════════════════════════
-     PANTALLA 1: SELECCIÓN PUERTA
-══════════════════════════════ -->
+<!-- PANTALLA 1: SELECCIÓN PUERTA -->
 <div id="sPuerta">
   <div class="logos">
     <img src="https://seinfinity.pro/wp-content/uploads/2025/10/PARISCOP-2.png" alt="Pariscorp">
@@ -148,22 +93,27 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════
-     PANTALLA 2: ESCÁNER
-══════════════════════════════ -->
+<!-- PANTALLA 2: ESCÁNER -->
 <div id="sScan">
   <div class="head">
     <img src="https://seinfinity.pro/wp-content/uploads/2025/10/PARISCOP-2.png" alt="Logo">
     <div class="head-mid">
-      <div class="ev">Escáner de Entradas</div>
-      <div class="pt" id="ptLabel">—</div>
+      <div class="head-ev">Escáner de Entradas</div>
+      <div class="head-pt" id="ptLabel">—</div>
     </div>
     <button class="btn-back" onclick="volver()">← Cambiar</button>
   </div>
 
-  <div class="vbox">
+  <div class="vbox" id="vbox">
     <video id="video" playsinline></video>
     <div class="frame"><div class="frame-box"></div></div>
+
+    <!-- ✅ Placeholder visible hasta que el usuario toca "Abrir cámara" -->
+    <div class="cam-placeholder" id="placeholder" onclick="startCam()">
+      <div class="cam-ico">📷</div>
+      <div class="cam-txt">Toca el botón para<br>activar la cámara</div>
+      <button class="cam-btn" onclick="startCam()">🎥 Abrir cámara</button>
+    </div>
   </div>
 
   <div class="controls">
@@ -171,15 +121,13 @@
     <button id="btnSwitch" class="btn btn-ghost" onclick="switchCam()" disabled>🔄 Cambiar</button>
     <button id="btnStop"   class="btn btn-red"   onclick="stopCam()"  disabled>⛔ Detener</button>
     <div class="manual">
-      <input id="manualInput" placeholder="Código manual...">
+      <input id="manualInput" placeholder="Código manual..." autocomplete="off">
       <button class="btn" onclick="manualValidar()">✔ Validar</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════
-     MODAL RESULTADO
-══════════════════════════════ -->
+<!-- MODAL -->
 <div id="backdrop" class="backdrop">
   <div class="modal">
     <div id="mOk"  class="box-ok"  style="display:none">✅ ¡Ticket validado!</div>
@@ -190,32 +138,32 @@
       <div><b>Puerta:</b> <span id="dPuerta">—</span></div>
     </div>
     <div class="mact">
-      <button class="btnm btn-gold"  onclick="cerrar();startCam()">🔁 Nuevo escaneo</button>
-      <button class="btnm btn-ghost" style="border:2px solid #334155;color:#e2e8f0;background:transparent" onclick="cerrar()">Cerrar</button>
+      <button class="btnm btn-gold"  onclick="cerrar();startCam()" style="background:var(--gold);color:#111">🔁 Nuevo escaneo</button>
+      <button class="btnm" style="border:2px solid #334155;color:#e2e8f0;background:transparent" onclick="cerrar()">Cerrar</button>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
-/* ══════════════════════════════════════════════════
-   ⚠️ REEMPLAZA ESTA URL CON LA TUYA DE APPS SCRIPT
-══════════════════════════════════════════════════ */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycfbP1TjvkTGDaI_dId2ukhXpxWKJHyrqUSy5bMYyc92VBvIjJTfJ1fo1nP7Yz8asM/exec';
+/* ══════════════════════════════════════════
+   REEMPLAZA CON TU URL REAL DE APPS SCRIPT
+══════════════════════════════════════════ */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycfbP1TjvkTGDaI_dld2ukhXpxWKJHyrqUSy5bMYyc92VBvljJTfJ1fo1nP7Yz8asM/exec';
 
 /* ════════════════════════════════════════ */
-
 let puerta = '';
 let stream = null, devices = [], current = 0;
 let running = false, raf = null, lastScan = 0;
 let detector = null, useDetector = false;
 let autoTimer = null, audioCtx = null;
 
-const video     = document.getElementById('video');
-const btnStart  = document.getElementById('btnStart');
-const btnStop   = document.getElementById('btnStop');
-const btnSwitch = document.getElementById('btnSwitch');
-const backdrop  = document.getElementById('backdrop');
+const video      = document.getElementById('video');
+const btnStart   = document.getElementById('btnStart');
+const btnStop    = document.getElementById('btnStop');
+const btnSwitch  = document.getElementById('btnSwitch');
+const placeholder= document.getElementById('placeholder');
+const backdrop   = document.getElementById('backdrop');
 
 /* ── NAVEGACIÓN ── */
 function elegir(p) {
@@ -223,6 +171,7 @@ function elegir(p) {
   document.getElementById('ptLabel').textContent = 'Puerta: ' + p;
   document.getElementById('sPuerta').style.display = 'none';
   document.getElementById('sScan').style.display   = 'flex';
+  // NO llamamos startCam() aquí — esperamos que el usuario toque el botón
 }
 
 function volver() {
@@ -234,7 +183,7 @@ function volver() {
 
 /* ── LOADING ── */
 function showLoading(txt) {
-  document.getElementById('loadTxt').textContent = txt || 'Procesando...';
+  document.getElementById('loadTxt').textContent   = txt || 'Procesando...';
   document.getElementById('loading').style.display = 'flex';
 }
 function hideLoading() {
@@ -256,16 +205,19 @@ function beep(ok) {
     o.start(t); o.stop(t + .25);
   } catch(e) {}
 }
-const vib = p => { if(navigator.vibrate) try { navigator.vibrate(p); } catch(e) {} };
+const vib = p => { if (navigator.vibrate) try { navigator.vibrate(p); } catch(e) {} };
 
-/* ── CÁMARA ── */
+/* ── UI BOTONES CÁMARA ── */
 function uiCam(on) {
   running = on;
   btnStart.disabled  = on;
   btnStop.disabled   = !on;
   btnSwitch.disabled = !on || devices.length <= 1;
+  // Ocultar placeholder cuando la cámara está activa
+  placeholder.style.display = on ? 'none' : 'flex';
 }
 
+/* ── ENUMERAR CÁMARAS ── */
 async function enumerate() {
   try {
     const all = await navigator.mediaDevices.enumerateDevices();
@@ -273,54 +225,88 @@ async function enumerate() {
   } catch(e) { return []; }
 }
 
+/* ── INICIAR CÁMARA ── */
 async function startCam() {
+  // Ocultar placeholder inmediatamente al tocar
+  placeholder.style.display = 'none';
+
   try {
     devices = await enumerate();
-    let constraints = { video: { facingMode: { ideal: 'environment' } } };
-    if (devices.length) {
-      const rear = devices.find(d => /back|rear|trasera|environment/i.test(d.label));
-      constraints = { video: { deviceId: { exact: (rear || devices[current]).deviceId } } };
+
+    // Intentar primero con facingMode environment (más simple y compatible)
+    let stream_temp;
+    try {
+      stream_temp = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+    } catch(e1) {
+      // Si falla, intentar con deviceId específico
+      if (devices.length) {
+        const rear = devices.find(d => /back|rear|trasera|environment/i.test(d.label));
+        const target = rear || devices[current];
+        stream_temp = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: target.deviceId } }
+        });
+      } else {
+        // Último intento: solo video sin restricciones
+        stream_temp = await navigator.mediaDevices.getUserMedia({ video: true });
+      }
     }
-    stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+    stream = stream_temp;
     video.srcObject = stream;
     await video.play();
     uiCam(true);
 
+    // Inicializar BarcodeDetector si está disponible
     useDetector = false;
     if ('BarcodeDetector' in window) {
       try {
-        detector    = new BarcodeDetector({ formats: ['qr_code','code_128','code_39','aztec','data_matrix'] });
+        detector    = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39', 'aztec', 'data_matrix'] });
         useDetector = true;
       } catch(e) {}
     }
+
     loop();
 
-  } catch(e) {
+  } catch(err) {
     uiCam(false);
+    placeholder.style.display = 'flex';
+
     let msg = '📷 No se pudo acceder a la cámara.';
-    if (e.name === 'NotAllowedError')  msg = '🔒 Permiso denegado.\n\nToca el ícono 🔒 en la barra de dirección\ny permite el acceso a la cámara.';
-    if (e.name === 'NotFoundError')    msg = '📷 No se encontró cámara.';
-    if (e.name === 'NotReadableError') msg = '⚠️ Cámara en uso por otra app.\nCiérrala e intenta de nuevo.';
+    if (err.name === 'NotAllowedError')  msg = '🔒 Permiso denegado.\n\nToca el ícono 🔒 en la barra de dirección → "Permitir" → recarga la página.';
+    if (err.name === 'NotFoundError')    msg = '📷 No se encontró ninguna cámara.';
+    if (err.name === 'NotReadableError') msg = '⚠️ Cámara en uso por otra app.\nCiérrala e intenta de nuevo.';
+    if (err.name === 'OverconstrainedError') msg = '⚙️ Error de configuración de cámara.\nInténtalo de nuevo.';
+
+    console.error('Camera error:', err.name, err.message);
     mostrarModal({ status: 'ERROR', reason: msg });
   }
 }
 
+/* ── DETENER CÁMARA ── */
 function stopCam() {
-  if (stream) { try { stream.getTracks().forEach(t => t.stop()); } catch(e) {} stream = null; }
-  if (raf)    { cancelAnimationFrame(raf); raf = null; }
+  if (stream) {
+    try { stream.getTracks().forEach(t => t.stop()); } catch(e) {}
+    stream = null;
+  }
+  if (raf) { cancelAnimationFrame(raf); raf = null; }
   uiCam(false);
 }
 
+/* ── CAMBIAR CÁMARA ── */
 async function switchCam() {
   if (!devices.length) return;
   current = (current + 1) % devices.length;
-  stopCam(); await startCam();
+  stopCam();
+  await startCam();
 }
 
-/* ── LOOP QR ── */
+/* ── LOOP DE DETECCIÓN ── */
 function loop() {
   if (!running) return;
   const vw = video.videoWidth, vh = video.videoHeight;
+
   if (vw && vh) {
     const c = document.createElement('canvas');
     c.width = vw; c.height = vh;
@@ -331,8 +317,11 @@ function loop() {
     if (useDetector && detector) {
       detector.detect(c).then(codes => {
         const v = codes && codes[0] && codes[0].rawValue;
-        if (v && now - lastScan > 1500) { lastScan = now; stopCam(); validar(String(v).trim()); }
-        else raf = requestAnimationFrame(loop);
+        if (v && now - lastScan > 1500) {
+          lastScan = now; stopCam(); validar(String(v).trim());
+        } else {
+          raf = requestAnimationFrame(loop);
+        }
       }).catch(() => { raf = requestAnimationFrame(loop); });
       return;
     }
@@ -348,12 +337,13 @@ function loop() {
   raf = requestAnimationFrame(loop);
 }
 
-/* ── MANUAL ── */
+/* ── VALIDACIÓN MANUAL ── */
 const manualInput = document.getElementById('manualInput');
 function manualValidar() {
   const c = (manualInput.value || '').trim();
   if (!c) return;
-  stopCam(); validar(c);
+  stopCam();
+  validar(c);
 }
 manualInput.addEventListener('keydown', e => { if (e.key === 'Enter') manualValidar(); });
 
@@ -399,26 +389,30 @@ function mostrarModal(res) {
   backdrop.style.display = 'flex';
 }
 
-function cerrar() { clearTimeout(autoTimer); backdrop.style.display = 'none'; }
+function cerrar() {
+  clearTimeout(autoTimer);
+  backdrop.style.display = 'none';
+}
 backdrop.addEventListener('click', e => { if (e.target === backdrop) cerrar(); });
 
-/* ── VALIDAR — llama a Apps Script via fetch ── */
+/* ── VALIDAR VÍA FETCH A APPS SCRIPT ── */
 async function validar(code) {
   showLoading('Validando...');
   try {
     const url = APPS_SCRIPT_URL
       + '?action=validate'
-      + '&code=' + encodeURIComponent(code)
+      + '&code='   + encodeURIComponent(code)
       + '&puerta=' + encodeURIComponent(puerta);
 
-    const res  = await fetch(url);
-    const data = await res.json();
+    const resp = await fetch(url, { redirect: 'follow' });
+    const data = await resp.json();
     hideLoading();
     mostrarModal(data);
 
   } catch(err) {
     hideLoading();
-    mostrarModal({ status: 'ERROR', reason: 'Error de conexión. Verifica tu internet.' });
+    console.error('Fetch error:', err);
+    mostrarModal({ status: 'ERROR', reason: '❌ Error de conexión.\nVerifica tu internet e intenta de nuevo.' });
   }
 }
 </script>
