@@ -22,7 +22,6 @@
   .pbtn:active{background:var(--gold);color:#111;border-color:var(--gold)}
   #sScan{display:none;flex-direction:column;height:100dvh}
   .head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--blue);border-bottom:2px solid var(--gold);flex-shrink:0}
-  .head img{height:32px}
   .head-mid{flex:1;text-align:center}
   .head-ev{font-size:13px;font-weight:900}
   .head-pt{font-size:14px;font-weight:900;color:var(--gold)}
@@ -38,7 +37,6 @@
   .controls{flex-shrink:0;background:rgba(15,23,42,.97);padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid rgba(255,255,255,.08)}
   .btn{display:flex;align-items:center;justify-content:center;gap:6px;background:#161f36;color:#fff;border:none;border-radius:12px;padding:16px 10px;font-size:17px;font-weight:800;min-height:54px;cursor:pointer}
   .btn:disabled{opacity:.4;cursor:not-allowed}
-  .btn-gold{background:var(--gold);color:#111;border:2px solid var(--blue);grid-column:1/-1}
   .btn-red{background:#b91c1c}
   .btn-ghost{background:transparent;border:2px solid #334155;color:#e2e8f0}
   .manual{grid-column:1/-1;display:flex;gap:8px}
@@ -78,13 +76,13 @@
 
 <div id="sScan">
   <div class="head">
-    <img src="https://seinfinity.pro/wp-content/uploads/2025/10/PARISCOP-2.png" alt="Logo">
     <div class="head-mid">
       <div class="head-ev">Escáner de Entradas</div>
       <div class="head-pt" id="ptLabel">—</div>
     </div>
     <button class="btn-back" onclick="volver()">← Cambiar</button>
   </div>
+
   <div class="vbox">
     <video id="video" playsinline></video>
     <div class="frame"><div class="frame-box"></div></div>
@@ -94,12 +92,12 @@
       <button class="cam-btn" onclick="startCam()">🎥 Abrir cámara</button>
     </div>
   </div>
+
   <div class="controls">
-    <button id="btnStart" class="btn btn-gold" onclick="startCam()">🎥 Iniciar cámara</button>
-    <button id="btnSwitch" class="btn btn-ghost" onclick="switchCam()" disabled>🔄 Cambiar</button>
+    <button id="btnSwitch" class="btn btn-ghost" onclick="switchCam()" disabled>🔄 Cambiar cámara</button>
     <button id="btnStop" class="btn btn-red" onclick="stopCam()" disabled>⛔ Detener</button>
     <div class="manual">
-      <input id="manualInput" placeholder="Código manual..." autocomplete="off">
+      <input id="manualInput" placeholder="QR completo..." autocomplete="off">
       <button class="btn" onclick="manualValidar()">✔ Validar</button>
     </div>
   </div>
@@ -132,7 +130,6 @@ let autoTimer=null, audioCtx=null;
 let warmInterval=null;
 
 const video    = document.getElementById('video');
-const btnStart = document.getElementById('btnStart');
 const btnStop  = document.getElementById('btnStop');
 const btnSwitch= document.getElementById('btnSwitch');
 const camStart = document.getElementById('camStart');
@@ -214,7 +211,6 @@ const vib=p=>{if(navigator.vibrate)try{navigator.vibrate(p);}catch(e){}};
 
 function uiCam(on){
   running=on;
-  btnStart.disabled=on;
   btnStop.disabled=!on;
   btnSwitch.disabled=!on||devices.length<=1;
   camStart.style.display=on?'none':'flex';
@@ -426,6 +422,16 @@ backdrop.addEventListener('click',e=>{
 });
 
 function validar(code){
+  code = String(code || '').trim();
+
+  if(!code.includes('|')){
+    mostrarModal({
+      status:'INVALIDO',
+      reason:'QR inválido. Debes escanear o pegar el valor completo de qr_valor.'
+    });
+    return;
+  }
+
   showLoading('Validando...');
 
   const url = APPS_SCRIPT_URL
