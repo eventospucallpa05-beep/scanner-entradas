@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Escáner — Vehículo Financiero</title>
+<style>
+  :root{
+    --gold:#d4af37; --blue:#0d1b3e;
+    --ok-bg:#052e1b; --ok-bd:#065f46; --ok-tx:#d1fae5;
+    --er-bg:#3f0a0a; --er-bd:#991b1b; --er-tx:#fecaca;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
+
+  /* ── PANTALLA SELECCIÓN PUERTA ── */
+  #sPuerta{
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:center;min-height:100dvh;padding:24px;
+  }
+  .logos{display:flex;gap:20px;align-items:center;margin-bottom:28px}
+  .logos img{height:44px}
+  #sPuerta h1{font-size:24px;font-weight:900;margin:0 0 6px;text-align:center}
+  #sPuerta p{color:#a1a1aa;font-size:14px;margin:0 0 28px;text-align:center}
+  .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:380px}
+  .pbtn{
+    background:#161f36;border:3px solid #334155;color:#fff;
+    border-radius:18px;padding:28px 10px;font-size:18px;font-weight:900;
+    cursor:pointer;transition:.15s;text-align:center;line-height:1.4
+  }
+  .pbtn:hover{border-color:var(--gold);color:var(--gold)}
+  .pbtn:active{background:var(--gold);color:#111;border-color:var(--gold)}
+
+  /* ── PANTALLA ESCÁNER ── */
+  #sScan{display:none;flex-direction:column;height:100dvh}
+  .head{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;background:var(--blue);
+    border-bottom:2px solid var(--gold);flex-shrink:0
+  }
+  .head img{height:32px}
+  .head-mid{flex:1;text-align:center}
+  .head-mid .ev{font-size:13px;font-weight:900}
+  .head-mid .pt{font-size:14px;font-weight:900;color:var(--gold)}
+  .btn-back{
+    background:transparent;border:2px solid #334155;
+    color:#e2e8f0;border-radius:10px;padding:7px 12px;
+    font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap
+  }
+  .vbox{
+    position:relative;flex:1 1 auto;margin:8px;
+    border:3px solid var(--blue);border-radius:16px;
+    overflow:hidden;background:#000;min-height:180px
+  }
+  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .frame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .frame-box{
+    width:220px;height:220px;border:3px solid var(--gold);
+    border-radius:20px;opacity:.85;
+    box-shadow:0 0 0 2000px rgba(0,0,0,.42)
+  }
+  .controls{
+    flex-shrink:0;background:rgba(15,23,42,.97);
+    padding:10px;display:grid;grid-template-columns:1fr 1fr;
+    gap:8px;border-top:1px solid rgba(255,255,255,.08)
+  }
+  .btn{
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    background:#161f36;color:#fff;border:none;border-radius:12px;
+    padding:16px 10px;font-size:17px;font-weight:800;min-height:54px;cursor:pointer
+  }
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn-gold{background:var(--gold);color:#111;border:2px solid var(--blue);grid-column:1/-1}
+  .btn-red{background:#b91c1c}
+  .btn-ghost{background:transparent;border:2px solid #334155;color:#e2e8f0}
+  .manual{grid-column:1/-1;display:flex;gap:8px}
+  .manual input{
+    flex:1;background:#0b1220;border:2px solid #334155;
+    color:#fff;border-radius:10px;font-size:17px;padding:14px 12px;min-width:0
+  }
+
+  /* ── MODAL ── */
+  .backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.72);
+    display:none;align-items:center;justify-content:center;
+    z-index:9999;padding:16px
+  }
+  .modal{
+    width:min(96vw,560px);background:#0b1220;
+    border:3px solid var(--blue);border-radius:20px;padding:20px
+  }
+  .box-ok{
+    background:var(--ok-bg);color:var(--ok-tx);border:3px solid var(--ok-bd);
+    border-radius:14px;padding:20px;font-size:28px;font-weight:900;
+    text-align:center;margin-bottom:12px
+  }
+  .box-err{
+    background:var(--er-bg);color:var(--er-tx);border:3px solid var(--er-bd);
+    border-radius:14px;padding:20px;font-size:24px;font-weight:900;
+    text-align:center;margin-bottom:12px;white-space:pre-line;line-height:1.4
+  }
+  .det{text-align:center;font-size:18px;line-height:1.6;margin-bottom:14px}
+  .det b{color:#e5e7eb}
+  .mact{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btnm{
+    font-size:18px;min-height:58px;padding:14px 20px;border-radius:14px;
+    border:none;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:8px
+  }
+
+  /* ── LOADING ── */
+  #loading{
+    position:fixed;inset:0;background:rgba(7,11,20,.9);
+    display:none;align-items:center;justify-content:center;
+    flex-direction:column;gap:14px;z-index:99999
+  }
+  .spin{
+    width:48px;height:48px;border:5px solid #1f3359;
+    border-top-color:var(--gold);border-radius:50%;
+    animation:sp .8s linear infinite
+  }
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #loading p{color:var(--gold);font-size:17px;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- ── LOADING ── -->
+<div id="loading">
+  <div class="spin"></div>
+  <p id="loadTxt">Validando...</p>
+</div>
+
+<!-- ══════════════════════════════
+     PANTALLA 1: SELECCIÓN PUERTA
+══════════════════════════════ -->
+<div id="sPuerta">
+  <div class="logos">
+    <img src="https://seinfinity.pro/wp-content/uploads/2025/10/PARISCOP-2.png" alt="Pariscorp">
+    <img src="https://seinfinity.pro/wp-content/uploads/2025/10/LOGO-CAPITAL-INFINITY-BLANCO.png" alt="Capital Infinity">
+  </div>
+  <h1>Escáner de Entradas</h1>
+  <p>Selecciona tu puerta para comenzar</p>
+  <div class="pgrid">
+    <button class="pbtn" onclick="elegir('PUERTA 1')">🚪<br>PUERTA 1</button>
+    <button class="pbtn" onclick="elegir('PUERTA 2')">🚪<br>PUERTA 2</button>
+    <button class="pbtn" onclick="elegir('PUERTA 3')">🚪<br>PUERTA 3</button>
+    <button class="pbtn" onclick="elegir('PUERTA 4')">🚪<br>PUERTA 4</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PANTALLA 2: ESCÁNER
+══════════════════════════════ -->
+<div id="sScan">
+  <div class="head">
+    <img src="https://seinfinity.pro/wp-content/uploads/2025/10/PARISCOP-2.png" alt="Logo">
+    <div class="head-mid">
+      <div class="ev">Escáner de Entradas</div>
+      <div class="pt" id="ptLabel">—</div>
+    </div>
+    <button class="btn-back" onclick="volver()">← Cambiar</button>
+  </div>
+
+  <div class="vbox">
+    <video id="video" playsinline></video>
+    <div class="frame"><div class="frame-box"></div></div>
+  </div>
+
+  <div class="controls">
+    <button id="btnStart"  class="btn btn-gold"  onclick="startCam()">🎥 Iniciar cámara</button>
+    <button id="btnSwitch" class="btn btn-ghost" onclick="switchCam()" disabled>🔄 Cambiar</button>
+    <button id="btnStop"   class="btn btn-red"   onclick="stopCam()"  disabled>⛔ Detener</button>
+    <div class="manual">
+      <input id="manualInput" placeholder="Código manual...">
+      <button class="btn" onclick="manualValidar()">✔ Validar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     MODAL RESULTADO
+══════════════════════════════ -->
+<div id="backdrop" class="backdrop">
+  <div class="modal">
+    <div id="mOk"  class="box-ok"  style="display:none">✅ ¡Ticket validado!</div>
+    <div id="mErr" class="box-err" style="display:none"></div>
+    <div id="mDet" class="det"     style="display:none">
+      <div><b>Nombre:</b> <span id="dNombre">—</span></div>
+      <div><b>Código:</b> <span id="dCodigo">—</span></div>
+      <div><b>Puerta:</b> <span id="dPuerta">—</span></div>
+    </div>
+    <div class="mact">
+      <button class="btnm btn-gold"  onclick="cerrar();startCam()">🔁 Nuevo escaneo</button>
+      <button class="btnm btn-ghost" style="border:2px solid #334155;color:#e2e8f0;background:transparent" onclick="cerrar()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════════
+   ⚠️ REEMPLAZA ESTA URL CON LA TUYA DE APPS SCRIPT
+══════════════════════════════════════════════════ */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycfbP1TjvkTGDaI_dId2ukhXpxWKJHyrqUSy5bMYyc92VBvIjJTfJ1fo1nP7Yz8asM/exec';
+
+/* ════════════════════════════════════════ */
+
+let puerta = '';
+let stream = null, devices = [], current = 0;
+let running = false, raf = null, lastScan = 0;
+let detector = null, useDetector = false;
+let autoTimer = null, audioCtx = null;
+
+const video     = document.getElementById('video');
+const btnStart  = document.getElementById('btnStart');
+const btnStop   = document.getElementById('btnStop');
+const btnSwitch = document.getElementById('btnSwitch');
+const backdrop  = document.getElementById('backdrop');
+
+/* ── NAVEGACIÓN ── */
+function elegir(p) {
+  puerta = p;
+  document.getElementById('ptLabel').textContent = 'Puerta: ' + p;
+  document.getElementById('sPuerta').style.display = 'none';
+  document.getElementById('sScan').style.display   = 'flex';
+}
+
+function volver() {
+  stopCam();
+  cerrar();
+  document.getElementById('sScan').style.display   = 'none';
+  document.getElementById('sPuerta').style.display = 'flex';
+}
+
+/* ── LOADING ── */
+function showLoading(txt) {
+  document.getElementById('loadTxt').textContent = txt || 'Procesando...';
+  document.getElementById('loading').style.display = 'flex';
+}
+function hideLoading() {
+  document.getElementById('loading').style.display = 'none';
+}
+
+/* ── AUDIO ── */
+function beep(ok) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+    o.frequency.setValueAtTime(ok ? 660 : 200, t);
+    o.frequency.linearRampToValueAtTime(ok ? 880 : 140, t + .18);
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(.25, t + .02);
+    g.gain.exponentialRampToValueAtTime(.0001, t + .22);
+    o.start(t); o.stop(t + .25);
+  } catch(e) {}
+}
+const vib = p => { if(navigator.vibrate) try { navigator.vibrate(p); } catch(e) {} };
+
+/* ── CÁMARA ── */
+function uiCam(on) {
+  running = on;
+  btnStart.disabled  = on;
+  btnStop.disabled   = !on;
+  btnSwitch.disabled = !on || devices.length <= 1;
+}
+
+async function enumerate() {
+  try {
+    const all = await navigator.mediaDevices.enumerateDevices();
+    return all.filter(d => d.kind === 'videoinput');
+  } catch(e) { return []; }
+}
+
+async function startCam() {
+  try {
+    devices = await enumerate();
+    let constraints = { video: { facingMode: { ideal: 'environment' } } };
+    if (devices.length) {
+      const rear = devices.find(d => /back|rear|trasera|environment/i.test(d.label));
+      constraints = { video: { deviceId: { exact: (rear || devices[current]).deviceId } } };
+    }
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = stream;
+    await video.play();
+    uiCam(true);
+
+    useDetector = false;
+    if ('BarcodeDetector' in window) {
+      try {
+        detector    = new BarcodeDetector({ formats: ['qr_code','code_128','code_39','aztec','data_matrix'] });
+        useDetector = true;
+      } catch(e) {}
+    }
+    loop();
+
+  } catch(e) {
+    uiCam(false);
+    let msg = '📷 No se pudo acceder a la cámara.';
+    if (e.name === 'NotAllowedError')  msg = '🔒 Permiso denegado.\n\nToca el ícono 🔒 en la barra de dirección\ny permite el acceso a la cámara.';
+    if (e.name === 'NotFoundError')    msg = '📷 No se encontró cámara.';
+    if (e.name === 'NotReadableError') msg = '⚠️ Cámara en uso por otra app.\nCiérrala e intenta de nuevo.';
+    mostrarModal({ status: 'ERROR', reason: msg });
+  }
+}
+
+function stopCam() {
+  if (stream) { try { stream.getTracks().forEach(t => t.stop()); } catch(e) {} stream = null; }
+  if (raf)    { cancelAnimationFrame(raf); raf = null; }
+  uiCam(false);
+}
+
+async function switchCam() {
+  if (!devices.length) return;
+  current = (current + 1) % devices.length;
+  stopCam(); await startCam();
+}
+
+/* ── LOOP QR ── */
+function loop() {
+  if (!running) return;
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (vw && vh) {
+    const c = document.createElement('canvas');
+    c.width = vw; c.height = vh;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(video, 0, 0, vw, vh);
+    const now = Date.now();
+
+    if (useDetector && detector) {
+      detector.detect(c).then(codes => {
+        const v = codes && codes[0] && codes[0].rawValue;
+        if (v && now - lastScan > 1500) { lastScan = now; stopCam(); validar(String(v).trim()); }
+        else raf = requestAnimationFrame(loop);
+      }).catch(() => { raf = requestAnimationFrame(loop); });
+      return;
+    }
+
+    if (window.jsQR) {
+      const img  = ctx.getImageData(0, 0, vw, vh);
+      const code = jsQR(img.data, img.width, img.height);
+      if (code && code.data && now - lastScan > 1500) {
+        lastScan = now; stopCam(); validar(code.data.trim()); return;
+      }
+    }
+  }
+  raf = requestAnimationFrame(loop);
+}
+
+/* ── MANUAL ── */
+const manualInput = document.getElementById('manualInput');
+function manualValidar() {
+  const c = (manualInput.value || '').trim();
+  if (!c) return;
+  stopCam(); validar(c);
+}
+manualInput.addEventListener('keydown', e => { if (e.key === 'Enter') manualValidar(); });
+
+/* ── MODAL ── */
+function mostrarModal(res) {
+  clearTimeout(autoTimer);
+  document.getElementById('mOk').style.display  = 'none';
+  document.getElementById('mErr').style.display = 'none';
+  document.getElementById('mDet').style.display = 'none';
+
+  const st = res && res.status ? String(res.status).toUpperCase() : 'ERROR';
+
+  if (st === 'VALIDADO_OK') {
+    document.getElementById('mOk').style.display  = 'block';
+    document.getElementById('mDet').style.display = 'block';
+    document.getElementById('dNombre').textContent = res.nombre || '—';
+    document.getElementById('dCodigo').textContent = res.codigo || '—';
+    document.getElementById('dPuerta').textContent = res.puerta || puerta || '—';
+    beep(true); vib([60, 60]);
+    autoTimer = setTimeout(() => { cerrar(); startCam(); }, 6000);
+
+  } else if (st === 'YA_VALIDADO') {
+    document.getElementById('mErr').textContent   = '⚠️ Entrada ya validada' + (res.validador ? '\nPor: ' + res.validador : '');
+    document.getElementById('mErr').style.display = 'block';
+    beep(false); vib([120, 80, 120]);
+
+  } else if (st === 'NO_ENCONTRADO') {
+    document.getElementById('mErr').textContent   = '❌ Código no encontrado';
+    document.getElementById('mErr').style.display = 'block';
+    beep(false); vib([200, 80, 200]);
+
+  } else if (st === 'INVALIDO') {
+    document.getElementById('mErr').textContent   = '⛔ QR inválido\n' + (res.reason || '');
+    document.getElementById('mErr').style.display = 'block';
+    beep(false); vib([200, 80, 200]);
+
+  } else {
+    document.getElementById('mErr').textContent   = (res && res.reason) || 'No se pudo validar';
+    document.getElementById('mErr').style.display = 'block';
+    beep(false); vib([200, 80, 200]);
+  }
+
+  backdrop.style.display = 'flex';
+}
+
+function cerrar() { clearTimeout(autoTimer); backdrop.style.display = 'none'; }
+backdrop.addEventListener('click', e => { if (e.target === backdrop) cerrar(); });
+
+/* ── VALIDAR — llama a Apps Script via fetch ── */
+async function validar(code) {
+  showLoading('Validando...');
+  try {
+    const url = APPS_SCRIPT_URL
+      + '?action=validate'
+      + '&code=' + encodeURIComponent(code)
+      + '&puerta=' + encodeURIComponent(puerta);
+
+    const res  = await fetch(url);
+    const data = await res.json();
+    hideLoading();
+    mostrarModal(data);
+
+  } catch(err) {
+    hideLoading();
+    mostrarModal({ status: 'ERROR', reason: 'Error de conexión. Verifica tu internet.' });
+  }
+}
+</script>
+</body>
+</html>
