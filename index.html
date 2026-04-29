@@ -125,31 +125,11 @@
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycfbP1TjvkTGDaI_dId2ukhXpxWKJHyrqUSy5bMYyc92VBvIjJTfJ1fo1nP7Yz8asM/exec';
 
-(function warmUpServer(){
-  const callbackName = 'warmup_' + Date.now();
-
-  window[callbackName] = function() {
-    try { delete window[callbackName]; } catch(e) { window[callbackName] = undefined; }
-  };
-
-  const script = document.createElement('script');
-  script.src = APPS_SCRIPT_URL
-    + '?action=ping'
-    + '&callback=' + encodeURIComponent(callbackName)
-    + '&t=' + Date.now();
-
-  script.onerror = function(){};
-  document.body.appendChild(script);
-
-  setTimeout(() => {
-    if (script.parentNode) script.parentNode.removeChild(script);
-  }, 8000);
-})();
-
 let puerta='', stream=null, devices=[], current=0;
 let running=false, raf=null, lastScan=0;
 let detector=null, useDetector=false;
 let autoTimer=null, audioCtx=null;
+let warmInterval=null;
 
 const video    = document.getElementById('video');
 const btnStart = document.getElementById('btnStart');
@@ -158,11 +138,52 @@ const btnSwitch= document.getElementById('btnSwitch');
 const camStart = document.getElementById('camStart');
 const backdrop = document.getElementById('backdrop');
 
+function jsonp(url, onOk, onErr, timeoutMs){
+  const callbackName = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 999999);
+  const script = document.createElement('script');
+
+  const timeout = setTimeout(() => {
+    cleanup();
+    if(onErr) onErr(new Error('Timeout'));
+  }, timeoutMs || 10000);
+
+  window[callbackName] = function(data) {
+    cleanup();
+    if(onOk) onOk(data);
+  };
+
+  function cleanup(){
+    clearTimeout(timeout);
+    try { delete window[callbackName]; } catch(e) { window[callbackName] = undefined; }
+    if(script.parentNode) script.parentNode.removeChild(script);
+  }
+
+  script.onerror = function(){
+    cleanup();
+    if(onErr) onErr(new Error('Script error'));
+  };
+
+  script.src = url + '&callback=' + encodeURIComponent(callbackName) + '&t=' + Date.now();
+  document.body.appendChild(script);
+}
+
+function warmUpServer(){
+  const url = APPS_SCRIPT_URL + '?action=ping';
+  jsonp(url, function(){}, function(){}, 8000);
+}
+
+warmUpServer();
+
+warmInterval = setInterval(() => {
+  warmUpServer();
+}, 35000);
+
 function elegir(p) {
   puerta = p;
   document.getElementById('ptLabel').textContent = 'Puerta: ' + p;
   document.getElementById('sPuerta').style.display = 'none';
   document.getElementById('sScan').style.display   = 'flex';
+  warmUpServer();
 }
 
 function volver() {
@@ -206,6 +227,7 @@ async function enumerate(){
 
 async function startCam(){
   camStart.style.display='none';
+  warmUpServer();
 
   try {
     devices = await enumerate();
@@ -406,59 +428,26 @@ backdrop.addEventListener('click',e=>{
 function validar(code){
   showLoading('Validando...');
 
-  const callbackName = 'jsonp_' + Date.now() + '_' + Math.floor(Math.random() * 99999);
-
   const url = APPS_SCRIPT_URL
     + '?action=validate'
-    + '&code='     + encodeURIComponent(code)
-    + '&puerta='   + encodeURIComponent(puerta)
-    + '&callback=' + encodeURIComponent(callbackName)
-    + '&t='        + Date.now();
+    + '&code='   + encodeURIComponent(code)
+    + '&puerta=' + encodeURIComponent(puerta);
 
-  const script = document.createElement('script');
-
-  const timeout = setTimeout(() => {
-    cleanup();
-    hideLoading();
-
-    mostrarModal({
-      status: 'ERROR',
-      reason: '⏱️ Tiempo de espera agotado.\nVerifica tu conexión e intenta de nuevo.'
-    });
-  }, 15000);
-
-  window[callbackName] = function(data) {
-    cleanup();
-    hideLoading();
-    mostrarModal(data);
-  };
-
-  function cleanup() {
-    clearTimeout(timeout);
-
-    try {
-      delete window[callbackName];
-    } catch(e) {
-      window[callbackName] = undefined;
-    }
-
-    if (script.parentNode) {
-      script.parentNode.removeChild(script);
-    }
-  }
-
-  script.onerror = function() {
-    cleanup();
-    hideLoading();
-
-    mostrarModal({
-      status: 'ERROR',
-      reason: '❌ Error al conectar con el servidor.\n\nVerifica que el Apps Script esté implementado como nueva versión.'
-    });
-  };
-
-  script.src = url;
-  document.body.appendChild(script);
+  jsonp(
+    url,
+    function(data){
+      hideLoading();
+      mostrarModal(data);
+    },
+    function(){
+      hideLoading();
+      mostrarModal({
+        status: 'ERROR',
+        reason: '⏱️ Tiempo de espera agotado o error de conexión.\nVerifica tu internet e intenta de nuevo.'
+      });
+    },
+    12000
+  );
 }
 </script>
 </body>
