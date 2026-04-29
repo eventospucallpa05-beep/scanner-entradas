@@ -123,7 +123,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
-// ⚠️ PON TU URL REAL AQUÍ
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycfbP1TjvkTGDaI_dld2ukhXpxWKJHyrqUSy5bMYyc92VBvljJTfJ1fo1nP7Yz8asM/exec';
 
 let puerta='', stream=null, devices=[], current=0;
@@ -168,6 +167,7 @@ function beep(ok) {
     o.start(t);o.stop(t+.25);
   }catch(e){}
 }
+
 const vib=p=>{if(navigator.vibrate)try{navigator.vibrate(p);}catch(e){}};
 
 function uiCam(on){
@@ -185,176 +185,260 @@ async function enumerate(){
 
 async function startCam(){
   camStart.style.display='none';
+
   try {
     devices = await enumerate();
     let s;
-    // Intento 1: cámara trasera ideal
+
     try {
       s = await navigator.mediaDevices.getUserMedia({
         video:{ facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720} }
       });
     } catch(e1) {
-      // Intento 2: cualquier cámara disponible
       try {
         s = await navigator.mediaDevices.getUserMedia({ video:true });
       } catch(e2) {
         throw e2;
       }
     }
+
     stream = s;
     video.srcObject = stream;
 
-    // ✅ Esperar a que el video esté listo antes de marcar como activo
     await new Promise((resolve, reject) => {
       video.onloadedmetadata = resolve;
       video.onerror = reject;
-      setTimeout(resolve, 3000); // timeout de seguridad
+      setTimeout(resolve, 3000);
     });
-    await video.play();
 
+    await video.play();
     uiCam(true);
 
     useDetector=false;
     if('BarcodeDetector' in window){
-      try{ detector=new BarcodeDetector({formats:['qr_code','code_128','code_39','aztec','data_matrix']}); useDetector=true; }catch(e){}
+      try{
+        detector=new BarcodeDetector({formats:['qr_code','code_128','code_39','aztec','data_matrix']});
+        useDetector=true;
+      }catch(e){}
     }
+
     loop();
 
   } catch(err){
     uiCam(false);
+
     let msg='📷 No se pudo acceder a la cámara.';
     if(err.name==='NotAllowedError')  msg='🔒 Permiso denegado.\n\nToca el candado 🔒 en la barra de dirección → "Permitir cámara" → recarga.';
     if(err.name==='NotFoundError')    msg='📷 No se encontró ninguna cámara en este dispositivo.';
     if(err.name==='NotReadableError') msg='⚠️ La cámara está en uso por otra app.\nCiérrala e intenta de nuevo.';
+
     console.error('CAM ERROR:', err.name, err.message);
     mostrarModal({status:'ERROR', reason:msg});
   }
 }
 
 function stopCam(){
-  if(stream){ try{stream.getTracks().forEach(t=>t.stop());}catch(e){} stream=null; }
-  if(raf){ cancelAnimationFrame(raf); raf=null; }
+  if(stream){
+    try{stream.getTracks().forEach(t=>t.stop());}catch(e){}
+    stream=null;
+  }
+
+  if(raf){
+    cancelAnimationFrame(raf);
+    raf=null;
+  }
+
   uiCam(false);
 }
 
 async function switchCam(){
   if(!devices.length) return;
   current=(current+1)%devices.length;
-  stopCam(); await startCam();
+  stopCam();
+  await startCam();
 }
 
 function loop(){
   if(!running) return;
+
   const vw=video.videoWidth, vh=video.videoHeight;
+
   if(vw&&vh){
     const c=document.createElement('canvas');
-    c.width=vw; c.height=vh;
+    c.width=vw;
+    c.height=vh;
+
     const ctx=c.getContext('2d',{willReadFrequently:true});
     ctx.drawImage(video,0,0,vw,vh);
+
     const now=Date.now();
+
     if(useDetector&&detector){
       detector.detect(c).then(codes=>{
         const v=codes&&codes[0]&&codes[0].rawValue;
-        if(v&&now-lastScan>1500){lastScan=now;stopCam();validar(String(v).trim());}
-        else raf=requestAnimationFrame(loop);
-      }).catch(()=>{raf=requestAnimationFrame(loop);});
+
+        if(v&&now-lastScan>1500){
+          lastScan=now;
+          stopCam();
+          validar(String(v).trim());
+        } else {
+          raf=requestAnimationFrame(loop);
+        }
+      }).catch(()=>{
+        raf=requestAnimationFrame(loop);
+      });
+
       return;
     }
+
     if(window.jsQR){
       const img=ctx.getImageData(0,0,vw,vh);
       const code=jsQR(img.data,img.width,img.height);
-      if(code&&code.data&&now-lastScan>1500){lastScan=now;stopCam();validar(code.data.trim());return;}
+
+      if(code&&code.data&&now-lastScan>1500){
+        lastScan=now;
+        stopCam();
+        validar(code.data.trim());
+        return;
+      }
     }
   }
+
   raf=requestAnimationFrame(loop);
 }
 
 const manualInput=document.getElementById('manualInput');
-function manualValidar(){ const c=(manualInput.value||'').trim(); if(!c)return; stopCam(); validar(c); }
-manualInput.addEventListener('keydown',e=>{if(e.key==='Enter')manualValidar();});
+
+function manualValidar(){
+  const c=(manualInput.value||'').trim();
+  if(!c)return;
+  stopCam();
+  validar(c);
+}
+
+manualInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter')manualValidar();
+});
 
 function mostrarModal(res){
   clearTimeout(autoTimer);
+
   document.getElementById('mOk').style.display='none';
   document.getElementById('mErr').style.display='none';
   document.getElementById('mDet').style.display='none';
+
   const st=res&&res.status?String(res.status).toUpperCase():'ERROR';
+
   if(st==='VALIDADO_OK'){
     document.getElementById('mOk').style.display='block';
     document.getElementById('mDet').style.display='block';
+
     document.getElementById('dNombre').textContent=res.nombre||'—';
     document.getElementById('dCodigo').textContent=res.codigo||'—';
     document.getElementById('dPuerta').textContent=res.puerta||puerta||'—';
-    beep(true); vib([60,60]);
-    autoTimer=setTimeout(()=>{cerrar();startCam();},6000);
+
+    beep(true);
+    vib([60,60]);
+
+    autoTimer=setTimeout(()=>{
+      cerrar();
+      startCam();
+    },6000);
+
   } else if(st==='YA_VALIDADO'){
     document.getElementById('mErr').textContent='⚠️ Entrada ya validada'+(res.validador?'\nPor: '+res.validador:'');
     document.getElementById('mErr').style.display='block';
-    beep(false); vib([120,80,120]);
+    beep(false);
+    vib([120,80,120]);
+
   } else if(st==='NO_ENCONTRADO'){
     document.getElementById('mErr').textContent='❌ Código no encontrado';
     document.getElementById('mErr').style.display='block';
-    beep(false); vib([200,80,200]);
+    beep(false);
+    vib([200,80,200]);
+
   } else if(st==='INVALIDO'){
     document.getElementById('mErr').textContent='⛔ QR inválido\n'+(res.reason||'');
     document.getElementById('mErr').style.display='block';
-    beep(false); vib([200,80,200]);
+    beep(false);
+    vib([200,80,200]);
+
   } else {
     document.getElementById('mErr').textContent=(res&&res.reason)||'No se pudo validar';
     document.getElementById('mErr').style.display='block';
-    beep(false); vib([200,80,200]);
+    beep(false);
+    vib([200,80,200]);
   }
+
   backdrop.style.display='flex';
 }
 
-function cerrar(){ clearTimeout(autoTimer); backdrop.style.display='none'; }
-backdrop.addEventListener('click',e=>{if(e.target===backdrop)cerrar();});
+function cerrar(){
+  clearTimeout(autoTimer);
+  backdrop.style.display='none';
+}
 
-// ✅ CORS fix: usar no-cors + imagen para el ping, y jsonp pattern para la respuesta
-async function validar(code){
+backdrop.addEventListener('click',e=>{
+  if(e.target===backdrop)cerrar();
+});
+
+// ✅ VALIDAR usando JSONP para evitar CORS
+function validar(code){
   showLoading('Validando...');
-  try{
-    const url = APPS_SCRIPT_URL
-      + '?action=validate'
-      + '&code='   + encodeURIComponent(code)
-      + '&puerta=' + encodeURIComponent(puerta)
-      + '&t='      + Date.now(); // evitar caché
 
-    // Apps Script devuelve redirect — usar mode:'cors' con redirect:'follow'
-    const resp = await fetch(url, {
-      method:   'GET',
-      redirect: 'follow',
-      mode:     'cors',
-      headers:  { 'Content-Type': 'text/plain' }
+  const callbackName = 'jsonp_' + Date.now() + '_' + Math.floor(Math.random() * 99999);
+
+  const url = APPS_SCRIPT_URL
+    + '?action=validate'
+    + '&code='     + encodeURIComponent(code)
+    + '&puerta='   + encodeURIComponent(puerta)
+    + '&callback=' + encodeURIComponent(callbackName)
+    + '&t='        + Date.now();
+
+  const script = document.createElement('script');
+
+  const timeout = setTimeout(() => {
+    cleanup();
+    hideLoading();
+
+    mostrarModal({
+      status: 'ERROR',
+      reason: '⏱️ Tiempo de espera agotado.\nVerifica tu conexión e intenta de nuevo.'
     });
+  }, 15000);
 
-    if(!resp.ok) throw new Error('HTTP ' + resp.status);
-
-    const text = await resp.text();
-    let data;
-    try { data = JSON.parse(text); }
-    catch(e){ throw new Error('Respuesta inválida: ' + text.substring(0,100)); }
-
+  window[callbackName] = function(data) {
+    cleanup();
     hideLoading();
     mostrarModal(data);
+  };
 
-  } catch(err){
-    hideLoading();
-    console.error('FETCH ERROR:', err);
+  function cleanup() {
+    clearTimeout(timeout);
 
-    // ✅ Si es error CORS, intentar con modo no-cors via imagen (workaround)
-    if(err.message.includes('CORS') || err.message.includes('Failed to fetch') || err.name==='TypeError'){
-      // Intentar validación manual como fallback
-      mostrarModal({
-        status:'ERROR',
-        reason:'⚠️ Error de conexión con el servidor.\n\nUsa el campo manual para ingresar el código:\n' + code
-      });
-      // Poner el código en el campo manual para facilitar
-      document.getElementById('manualInput').value = code;
-    } else {
-      mostrarModal({status:'ERROR', reason:'❌ '+err.message});
+    try {
+      delete window[callbackName];
+    } catch(e) {
+      window[callbackName] = undefined;
+    }
+
+    if (script.parentNode) {
+      script.parentNode.removeChild(script);
     }
   }
+
+  script.onerror = function() {
+    cleanup();
+    hideLoading();
+
+    mostrarModal({
+      status: 'ERROR',
+      reason: '❌ Error al conectar con el servidor.\n\nVerifica que el Apps Script esté implementado como nueva versión.'
+    });
+  };
+
+  script.src = url;
+  document.body.appendChild(script);
 }
 </script>
 </body>
